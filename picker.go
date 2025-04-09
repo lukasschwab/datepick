@@ -41,7 +41,8 @@ const (
 // picker implements tea.Model for a date.Date.
 type picker struct {
 	date.Date
-	focus interval
+	focus    interval
+	showHelp bool
 
 	promptStyle lipgloss.Style
 	prompt      string
@@ -97,19 +98,37 @@ func (p *picker) Update(msg tea.Msg) (*picker, tea.Cmd) {
 		case "down", "j":
 			p.incr(backward)
 
+		// increment/decrement by week
+		case "w":
+			p.incr(direction(forward * 7))
+		case "W":
+			p.incr(direction(backward * 7))
+
 		// "left"/"right" cycle the focused component
 		case "left", "h", "shift+tab":
 			p.focus = p.focus.incr(backward)
 		case "right", "l", "tab":
 			p.focus = p.focus.incr(forward)
+
+		case "?":
+			p.showHelp = !p.showHelp
 		}
 	}
 	return p, nil
 }
 
+// TODO: reimplement on https://github.com/charmbracelet/bubbletea/blob/main/examples/help/main.go
+func (p *picker) formatHelp() string {
+	if !p.showHelp {
+		return ""
+	}
+
+	return "\n\n" + strings.Repeat(" ", len(p.prompt)) + weekdayStyle.Render("tab next • ↑/↓ increment • w/W jump week • ⏎ done") + "\n"
+}
+
 // View implements tea.Model.
 func (p *picker) View() string {
-	return p.promptStyle.Render(p.prompt) + p.formatDate()
+	return p.promptStyle.Render(p.prompt) + p.formatDate() + p.formatHelp()
 }
 
 // Value of p.
