@@ -97,6 +97,12 @@ func (p *picker) Update(msg tea.Msg) (*picker, tea.Cmd) {
 		case "down", "j":
 			p.incr(backward)
 
+		// increment/decrement by week
+		case "w":
+			p.incr(direction(forward * 7))
+		case "W":
+			p.incr(direction(backward * 7))
+
 		// "left"/"right" cycle the focused component
 		case "left", "h", "shift+tab":
 			p.focus = p.focus.incr(backward)
